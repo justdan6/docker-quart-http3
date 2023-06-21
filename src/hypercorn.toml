@@ -1,0 +1,8 @@
+accesslog = "-"
+alt_svc_headers = ["h3=\":443\"; ma=86400"]
+certfile = "/home/quart/cert.pem"
+errorlog = "-"
+insecure_bind = "0.0.0.0:80"
+bind = "0.0.0.0:443"
+keyfile = "/home/quart/key.pem"
+quic_bind = "0.0.0.0:443"
