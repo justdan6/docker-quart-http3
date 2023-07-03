@@ -13,7 +13,8 @@ RUN apk add --no-cache --virtual .build-deps \
   musl-dev \
   bsd-compat-headers \
   libffi-dev \
-  openssl-dev
+  openssl-dev \
+  --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
   
 # Create a virtual environment and install the dependecies
 RUN openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout key.pem -out cert.pem -subj "/C=US/ST=VA/L=DC/O=OrgName/OU=IT Department/CN=example.com"
