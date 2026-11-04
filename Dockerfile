@@ -1,38 +1,24 @@
-FROM python:3.10-alpine
+FROM python:3.15.2-alpine3.24
 
-# Create a user
-RUN adduser -D quart
-# Set working directory for the purpose of this Dockerfile
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apk upgrade --no-cache \
+    && apk add --no-cache openssl \
+    && adduser -D quart
+
 WORKDIR /home/quart
 
-# Copy requirements to the app root
 COPY requirements.txt ./
-RUN apk add --no-cache --virtual .build-deps \
-  openssl \
-  gcc \
-  musl-dev \
-  bsd-compat-headers \
-  libffi-dev \
-  openssl-dev \
-  --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
-  
-# Create a virtual environment and install the dependecies
-RUN openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout key.pem -out cert.pem -subj "/C=US/ST=VA/L=DC/O=OrgName/OU=IT Department/CN=example.com"
-RUN pip install --no-cache-dir -r requirements.txt --upgrade && \
-  chown -R quart:quart ./
+RUN python -m pip install --no-cache-dir --upgrade pip==26.3 \
+    && python -m pip install --no-cache-dir --only-binary=:all: -r requirements.txt \
+    && python -m pip check
 
-#RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+COPY --chown=quart:quart src/ ./
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-# Copy the app into our user root
-COPY src /home/quart/
-# Make our entrypoint executable
+EXPOSE 80/tcp 443/tcp 443/udp
 
-EXPOSE 8080 8443
-
-# Set the user
 USER quart
-# Set the entrypoint
-
-
-#ENTRYPOINT ["sh", "./boot.sh"]
-CMD ["hypercorn", "--config", "hypercorn.toml", "app:app"]
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["hypercorn", "--config", "file:hypercorn_config.py", "app:app"]
